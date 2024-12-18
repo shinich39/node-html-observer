@@ -24,7 +24,9 @@ const ARGS = process.argv.slice(2).map(arg => {
 
 const PORT = ARGS.port ?? ARGS.P ?? 3000;
 const TARGET_PATH = ARGS.target ?? ARGS.T;
-const ROOT_PATH = path.resolve(path.dirname(TARGET_PATH));
+const ROOT_PATH = process.cwd();
+// const ROOT_PATH = path.resolve(path.dirname(TARGET_PATH));
+// const SCRIPT_PATH = path.relative(ROOT_PATH, path.join(__dirname, "client.js"));
 const SCRIPT_DATA = fs.readFileSync(path.join(__dirname, "client.js"), "utf8")
   .replace("new WebSocket();", `new WebSocket("ws://127.0.0.1:${PORT}/");`);
 
@@ -36,8 +38,14 @@ app.set('port', PORT);
 // HTML file routings
 app.get('*', (req, res, next) => {
   const { url } = req;
-  if (url === "" || url === "/" || /\.html$/.test(url)) {
+  if (url === "" || url === "/") {
     const html = fs.readFileSync(TARGET_PATH, 'utf8');
+    const $ = cheerio.load(html);
+    $("body").append(`<script>${SCRIPT_DATA}</script>`);
+    res.write($.root().html());
+    res.end();
+  } else if (/\.html$/.test(url)) {
+    const html = fs.readFileSync(path.join(process.cwd(), url), 'utf8');
     const $ = cheerio.load(html);
     $("body").append(`<script>${SCRIPT_DATA}</script>`);
     res.write($.root().html());
