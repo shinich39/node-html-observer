@@ -6,11 +6,9 @@ Create an observer that refresh after detecting html changes.
 
 ```js
 // package.json
-
 {
   "scripts": {
     "test": "observe index.html --port=3000"
   }
 }
-
 ```
